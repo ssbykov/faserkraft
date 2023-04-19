@@ -1,0 +1,15 @@
+{# _formhelpers.html #}
+<link type="text/css" href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet"/>
+{% macro render_field(field) %}
+    <div class="reg_title"> {{ field.label }}:</div>
+    {% if field.errors %}
+        {{ field(class="invalid")|safe }}
+        <span class="errors">
+                {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </span>
+    {% else %}
+        {{ field(**kwargs)|safe }}
+    {% endif %}
+{% endmacro %}

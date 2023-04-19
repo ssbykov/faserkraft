@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<body>
+
+<link type="text/css" href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet"/>
+<style>
+    .button-container-div {
+        text-align: center;
+        border: 1px solid coral;
+        height: 40vh;
+    }
+</style>
+<div id="reg_form">
+    <form action="{{ url_for('register') }}" method="post" class="form-contact">
+        <h1>Регистрация</h1>
+        {% for cat, msg in get_flashed_messages(True) %}
+            <div class="flash {{ cat }}">{{ msg }}</div>
+        {% endfor %}
+        {{ form.hidden_tag() }}
+        {% for field in form if field.name not in ['csrf_token', 'submit'] -%}
+            {{ field.label(class="reg_title") }}
+            {% if field.errors %}
+                {{ field(class="invalid") }}
+                <span>
+                {% for error in field.errors %}
+                    <div class="errors">{{ error }}</div>
+                {% endfor %}
+         </span>
+            {% else %}
+                {{ field() }}
+            {% endif %}
+        {% endfor %}
+        <div style="text-align: center"><input type="submit" value="Отправить"/></div>
+    </form>
+</div>
+</body>
+</head>
+</html>

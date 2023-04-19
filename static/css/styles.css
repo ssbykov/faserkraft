@@ -1,0 +1,52 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    border-size: border-box;
+    font-family: 'Balsamiq Sans', sans-serif;
+    color: #444;
+}
+
+h1 {
+    font-size: 20px;
+    margin: 0 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+#reg_form {
+    width: 350px;
+    margin: 20px auto 0 auto;
+    padding: 10px;
+    background: #fff;
+    box-shadow: 5px 5px 10px #aaa;
+}
+
+.reg_title {
+    display: inline-block;
+    min-width: 120px;
+    padding: 10px;
+}
+
+.flash {
+    padding: 10px;
+}
+
+.flash.success {
+    border: 1px solid #21DB56;
+    background: #AEFFC5;
+}
+
+.flash.error {
+    border: 1px solid #FF4343;
+    background: #FF9C9C;
+}
+
+.form-contact .invalid {
+    display: inline-block;
+    background: #FF9898;
+}
+
+.form-contact .errors {
+    color: #CC0000;
+    margin: 0 auto 0 10px;
+}

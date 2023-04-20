@@ -1,10 +1,10 @@
 from models import HttpError, User
 from flask_login import UserMixin
-
+from models import db
 
 class UserLogin(UserMixin):
-    def from_db(self, session, user_id):
-        user = session.query(User).get(user_id)
+    def from_db(self, user_id):
+        user = db.session.query(User).get(user_id)
         if user is None:
             raise HttpError(404, 'Пользователя не существуйет!')
         self.__user = user

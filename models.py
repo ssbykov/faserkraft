@@ -1,13 +1,20 @@
-from sqlalchemy import Column, Integer, String, DateTime, func
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from datetime import datetime
 from dotenv import load_dotenv
 import os
+from flask_sqlalchemy import SQLAlchemy
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
+
+SQLALCHEMY_DATABASE_URI = f"postgresql://" \
+                          f"{os.getenv('DB_USER')}" \
+                          f":{os.getenv('DB_PASS')}" \
+                          f"@{os.getenv('DB_HOST')}" \
+                          f":{os.getenv('DB_PORT')}" \
+                          f"/{os.getenv('DB_BASE')}"
+
+db = SQLAlchemy()
 
 
 class HttpError(Exception):
@@ -17,28 +24,16 @@ class HttpError(Exception):
         self.message = message
 
 
-Base = declarative_base()
-engine = create_engine(f"postgresql://"
-                       f"{os.getenv('DB_USER')}"
-                       f":{os.getenv('DB_PASS')}"
-                       f"@{os.getenv('DB_HOST')}"
-                       f":{os.getenv('DB_PORT')}"
-                       f"/{os.getenv('DB_BASE')}")
-Session = sessionmaker(engine)
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    surname = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False, unique=True)
+    creation_date = db.Column(db.DateTime(), default=datetime.utcnow)
+    psw = db.Column(db.String(200), nullable=False)
 
-
-class User(Base):
-    __tablename__ = 'users'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=False)
-    surname = Column(String(100), nullable=False)
-    email = Column(String(100), nullable=False, unique=True)
-    creation_date = Column(DateTime(), server_default=func.now())
-    psw = Column(String(200), nullable=False)
-
-
-Base.metadata.create_all(engine)
+    def __repr__(self):
+        return f"<users {self.id}>"
 
 
 class DB:
@@ -49,7 +44,7 @@ class DB:
             raise HttpError(404, 'Пользователя не существуйет!')
         return user
 
-    def get_user_by_mail(self, session, email):
-        user = list(session.query(User).filter(User.email == email))
-        if user:
-            return user[0]
+    def get_user_by_mail(self, email):
+        user = db.session.query(User).filter(User.email == email)
+        for u in user:
+            return u

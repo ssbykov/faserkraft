@@ -1,11 +1,11 @@
 import os
 
-from flask import Flask, url_for, render_template, redirect, jsonify
+from flask import Flask, url_for, render_template, redirect
 from dotenv import load_dotenv
 from flask_login import LoginManager, login_required, logout_user, current_user
 
 from UserLogin import UserLogin
-from models import Session
+from models import db, SQLALCHEMY_DATABASE_URI
 
 from views import UserRegister, UserLog
 
@@ -16,14 +16,21 @@ if os.path.exists(dotenv_path):
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+
+db.init_app(app)
+
+with app.app_context():
+    db.create_all()
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+
 @login_manager.user_loader
 def load_user(user_id):
-    with Session() as session:
-        return UserLogin().from_db(session, user_id)
+    return UserLogin().from_db(user_id)
+
 
 @app.route('/logout')
 @login_required
@@ -31,10 +38,12 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+
 @app.route('/')
 @login_required
 def index():
     return render_template('base.html')
+
 
 @app.route('/profile')
 @login_required
@@ -58,6 +67,3 @@ login_manager.login_message_category = "success"
 
 if __name__ == '__main__':
     app.run()
-
-# with app.test_request_context():
-#     print(url_for('index'))

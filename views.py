@@ -1,12 +1,13 @@
+from flask import request, render_template, flash, url_for, redirect
 from flask.views import MethodView
+from flask_login import login_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from UserLogin import UserLogin
 from forms import RegistrationForm, LogForm
 from models import User, DB
-from flask import request, render_template, flash, url_for, redirect
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import login_user, current_user
 from models import db
+
 
 class UserLog(MethodView):
     def __init__(self):
@@ -23,11 +24,13 @@ class UserLog(MethodView):
         if self.form.validate_on_submit():
             user = DB().get_user_by_mail(user_data['email'])
             if user and check_password_hash(user.psw, request.form['password']):
-                userlogin = UserLogin().create(user)
-                login_user(userlogin)
-                return redirect(url_for('profile'))
-
-            flash("Неверная пара логин/пароль", "error")
+                if user.is_active:
+                    userlogin = UserLogin().create(user)
+                    login_user(userlogin)
+                    return redirect(url_for('profile'))
+                flash("Учетная запись не активна", "error")
+            else:
+                flash("Неверная пара логин/пароль", "error")
 
         return render_template(self.temp, form=self.form)
 

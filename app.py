@@ -1,12 +1,13 @@
 import os
 
-from flask import Flask, url_for, render_template, redirect
 from dotenv import load_dotenv
+from flask import Flask, url_for, render_template, redirect
 from flask_login import LoginManager, login_required, logout_user, current_user
 
+import error_handlers
 from UserLogin import UserLogin
+from admin import admin
 from models import db, SQLALCHEMY_DATABASE_URI
-
 from views import UserRegister, UserLog
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -17,8 +18,10 @@ app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+app.register_blueprint(error_handlers.blueprint)
 
 db.init_app(app)
+admin.init_app(app)
 
 with app.app_context():
     db.create_all()
@@ -51,13 +54,14 @@ def profile():
     if current_user.is_authenticated:
         user_profile = current_user.get_user()
         return f"""<a href="{url_for('logout')}">Выйти из профиля</a>
-                Данные пользователя: \n{user_profile.name} \n {user_profile.surname}"""
+                <p>Данные пользователя: {user_profile.name} {user_profile.surname}
+                <p> Администратор: {user_profile.is_admin}"""
     return redirect(url_for('login'))
 
 
-@app.errorhandler(404)
-def redirect_404(error):
-    return redirect(url_for('register'))
+# @app.errorhandler(404)
+# def redirect_404(error):
+#     return redirect(url_for('register'))
 
 
 app.add_url_rule('/reg', view_func=UserRegister.as_view('register'))

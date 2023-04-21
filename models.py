@@ -1,6 +1,7 @@
-from datetime import datetime
-from dotenv import load_dotenv
 import os
+from datetime import datetime
+
+from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -29,8 +30,10 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False)
     surname = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False, unique=True)
-    creation_date = db.Column(db.DateTime(), default=datetime.utcnow)
+    creation_date = db.Column(db.DateTime(), default=datetime.now)
     psw = db.Column(db.String(200), nullable=False)
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
 
     def __repr__(self):
         return f"<users {self.id}>"

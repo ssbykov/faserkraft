@@ -1,12 +1,44 @@
 from flask import request, render_template, flash, url_for, redirect
 from flask.views import MethodView
+from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
 from flask_login import login_user, current_user
+from flask_restful import Resource
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from UserLogin import UserLogin
 from forms import RegistrationForm, LogForm
 from models import User, DB
 from models import db
+
+
+class LoginAPI(Resource):
+    @jwt_required()
+    def get(self):
+        user_id = get_jwt_identity()
+        user = DB().get_user(user_id)
+        if user.is_active:
+            return {'user': user_id, 'name': user.name}
+        return {405: ("Учетная запись не активна", "error")}
+
+    def post(self):
+        user = self.get_identity_if_logedin()
+        if user:
+            pass
+        user_data = request.form
+        user = DB().get_user_by_mail(user_data['email'])
+        if user and check_password_hash(user.psw, request.form['password']):
+            if user.is_active:
+                token = user.get_token()
+                return {'access_token': token, 201: ("Вы вошли в систему", "success")}
+            return {405: ("Учетная запись не активна", "error")}
+        return {401: ("Неверная пара логин/пароль", "error")}
+
+    def get_identity_if_logedin(self):
+        try:
+            verify_jwt_in_request()
+            return get_jwt_identity()
+        except Exception:
+            pass
 
 
 class UserLog(MethodView):

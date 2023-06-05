@@ -1,23 +1,20 @@
-import zbar
 from kivy.app import App
-from kivy.uix.camera import Camera
 from kivy.lang import Builder
 
 class QrScannerApp(App):
     def build(self):
-        return Builder.load_string(
-"""
+        txt = """
 #: import ZBarCam kivy_garden.zbarcam
 BoxLayout:
-    oruintation: 'vertical'
+    orientation: 'vertical'
     ZBarCam:
         id:qrcodecam
     Label:
-        size_hint: None, None
+        size_hint: 0.5, 0.5
         size: self.texture_size[0], 50
-        text: ' '.join([str(symbol.data) for symbol in qrcodecam.symbols])
+        text: 'Расшифровка кода:' + ' '.join([str(symbol.data) for symbol in qrcodecam.symbols])
 """
-        )
+        return Builder.load_string(txt)
 
 
 if __name__ == '__main__':

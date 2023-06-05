@@ -3,7 +3,7 @@ from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user
 
-from models import User, db, Stage, Product#, Execution, Operation, Unit
+from models import User, db, Stage, Product, ProductStage  # , Execution, Operation, Unit
 
 
 def user_check(current_user):
@@ -35,24 +35,33 @@ class MyModelView(ModelView):
     # column_list = ('id', 'product_id', 'stage_id', 'execution_id')
 
 class ProductAdmin(ModelView):
-    column_labels = dict(name='Название', stages='Этап')
+    column_labels = dict(name='Название', stages='Этапы')
+    column_list = ('id', 'name')
+    form_columns = ('name', 'stages')
+    inline_models = ((
+                         ProductStage,
+                         {
+                             'column_labels': dict(order_num='Номер', stage='Этап'),
+                             'form_columns': ('id', 'order_num', 'stage'),
+                         }
+                     ),)
+
     # column_display_all_relations = True
     # column_list = [c_attr.key for c_attr in db.inspect(Technology).mapper.column_attrs]
-    column_list = ['id', 'name']
-    form_columns = ['name', 'stages']
 
-# class TechnologyAdmin(ModelView):
-#     column_display_all_relations = True
-#     # column_list = [c_attr.key for c_attr in db.inspect(Technology).mapper.column_attrs]
-#     column_list = ['id', 'product_id']
-#     form_columns = ['id', 'product', ]
+class TechnologyAdmin(ModelView):
+    column_labels = dict(id='Номер', name='Название')
+    column_default_sort = 'id'
+    column_list = ['id', 'name']
+    form_columns = ['id', 'name']
+    # form_create_rules = ['name']
 
 admin = Admin(index_view=MyAdminIndexView(), name='Фазеркрафт', endpoint='admin')
 admin.add_view(MyModelView(User, db.session, name='Пользователь'))
 admin.add_view(ProductAdmin(Product, db.session, name='Продукт'))
+admin.add_view(TechnologyAdmin(Stage, db.session, name='Технологический этап'))
 # admin.add_view(TechnologyAdmin(Technology, db.session, name='Технология'))
 # admin.add_view(OperationAdmin(Operation, db.session, name='Операция'))
-admin.add_view(MyModelView(Stage, db.session, name='Технологический этап'))
 # admin.add_view(MyModelView(Execution, db.session, name='Операция'))
 # admin.add_view(MyModelView(Unit, db.session, name='Изделие'))
 

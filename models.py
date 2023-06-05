@@ -1,9 +1,11 @@
 import os
 from datetime import datetime, timedelta
+from typing import List
 
 from dotenv import load_dotenv
 from flask_jwt_extended import create_access_token
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import Mapped, mapped_column
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(dotenv_path):
@@ -46,18 +48,18 @@ class User(db.Model):
         return token
 
 
-product_stage = db.Table('product_stage',
-                         db.Column('order_num', db.Integer),
-                         db.Column('product_id', db.Integer, db.ForeignKey('product.id')),
-                         db.Column('stage_id', db.Integer, db.ForeignKey('stage.id'))
-                         )
-
+# product_stage = db.Table('product_stage',
+#                          db.Column('order_num', db.Integer),
+#                          db.Column('product_id', db.Integer, db.ForeignKey('product.id')),
+#                          db.Column('stage_id', db.Integer, db.ForeignKey('stage.id'))
+#                          )
+#
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
     description = db.Column(db.String(255), nullable=True)
-    stages = db.relationship("Stage", secondary=product_stage, back_populates="products")
+    stages = db.relationship("Stage", secondary='product_stage', back_populates="products")
 
     def __unicode__(self):
         return self.name
@@ -69,10 +71,22 @@ class Product(db.Model):
 class Stage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
-    products = db.relationship("Product", secondary=product_stage, back_populates="stages")
+    products = db.relationship("Product", secondary='product_stage', back_populates="stages")
 
     def __repr__(self):
         return self.name
+
+class ProductStage(db.Model):
+    __tablename__ = 'product_stage'
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
+    stage_id = db.Column(db.Integer, db.ForeignKey('stage.id'))
+    order_num = db.Column(db.Integer, nullable=False)
+
+    product = db.relationship(Product, backref='products')
+    stage = db.relationship(Stage, backref='stages')
+
 
 # class Operation(db.Model):
 #     id = db.Column(db.Integer, primary_key=True)

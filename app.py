@@ -8,7 +8,8 @@ import error_handlers
 from UserLogin import UserLogin
 from admin import admin
 from models import db, SQLALCHEMY_DATABASE_URI
-from views import UserRegister, UserLog, LoginAPI
+from tests_data import new_base
+from views import UserRegister, UserLog, LoginAPI, ProductApi
 from flask_restful import Resource, Api
 from flask_jwt_extended import JWTManager
 
@@ -28,6 +29,7 @@ db.init_app(app)
 admin.init_app(app)
 
 with app.app_context():
+    # new_base()
     db.create_all()
 
 login_manager = LoginManager(app)
@@ -74,6 +76,7 @@ login_manager.login_message = "Необходима авторизация"
 login_manager.login_message_category = "success"
 
 api.add_resource(LoginAPI, '/api/login')
+api.add_resource(ProductApi, '/api/product')
 
 
 if __name__ == '__main__':

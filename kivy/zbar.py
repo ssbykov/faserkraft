@@ -1,5 +1,8 @@
+import requests
 from kivy.app import App
 from kivy.lang import Builder
+from kivy.storage.jsonstore import JsonStore
+
 
 class QrScannerApp(App):
     def build(self):
@@ -7,14 +10,28 @@ class QrScannerApp(App):
 #: import ZBarCam kivy_garden.zbarcam
 BoxLayout:
     orientation: 'vertical'
-    ZBarCam:
-        id:qrcodecam
-    Label:
-        size_hint: 0.5, 0.5
-        size: self.texture_size[0], 50
-        text: 'Расшифровка кода:' + ' '.join([str(symbol.data) for symbol in qrcodecam.symbols])
+    size_hint: 0.4, 0.4
+	ZBarCam:
+		id:zbarcam
+		on_symbols:app.on_symbols(*args)
 """
-        return Builder.load_string(txt)
+        self.root = Builder.load_string(txt)
+        self.store = JsonStore('myapp.json')
+
+    def on_symbols(self, instance, symbols):
+        if not symbols == "":
+            for symbol in symbols:
+                self.get_product(symbol.data.decode())
+
+    def get_product(self, unit_code):
+        if unit_code[:3] == 'uf_' and len(unit_code) == 10:
+            token = self.store.get('token')['value']
+            res = requests.get(
+                'http://127.0.0.1:5000/api/product',
+                headers={'Authorization': f'Bearer {token}'},
+                params={'product': unit_code}
+            )
+            print(res.json())
 
 
 if __name__ == '__main__':

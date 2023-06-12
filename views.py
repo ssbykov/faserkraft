@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from UserLogin import UserLogin
 from forms import RegistrationForm, LogForm
-from models import User, DB
+from models import User, DB, Unit
 from models import db
 
 
@@ -95,3 +95,18 @@ class UserRegister(MethodView):
                 db.session.rollback()
                 flash('Ошибка добавление в БД!', category='error')
         return render_template(self.temp, form=self.form)
+
+
+class ProductApi(MethodView):
+    @jwt_required()
+    def get(self):
+        user_id = get_jwt_identity()
+        user = DB().get_user(user_id)
+        if user.is_active:
+            unit_code = request.values.get('product')
+            unit = db.session.query(Unit).get(unit_code)
+            if unit:
+                return {'code': unit.code, 'name': unit.product.name}
+            return {'code': None, 'name': None}
+        return {405: ("Учетная запись не активна", "error")}
+

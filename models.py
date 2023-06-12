@@ -1,11 +1,14 @@
 import os
 from datetime import datetime, timedelta
 from typing import List
+import json
 
 from dotenv import load_dotenv
 from flask_jwt_extended import create_access_token
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import CheckConstraint, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
+from werkzeug.security import generate_password_hash
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(dotenv_path):
@@ -59,7 +62,9 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
     description = db.Column(db.String(255), nullable=True)
-    stages = db.relationship("Stage", secondary='product_stage', back_populates="products")
+    stages = db.relationship('Stage', secondary='product_stage',
+                                  backref=db.backref('products', lazy=True))
+    # stages = db.relationship("Stage", secondary='product_stage', back_populates="products")
 
     def __unicode__(self):
         return self.name
@@ -71,22 +76,31 @@ class Product(db.Model):
 class Stage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
-    products = db.relationship("Product", secondary='product_stage', back_populates="stages")
+    # products = db.relationship("Product", secondary='product_stage', back_populates="stages")
 
     def __repr__(self):
         return self.name
+
+def order_num_default(context):
+    res = context.get_current_parameters()
+    return res
 
 class ProductStage(db.Model):
     __tablename__ = 'product_stage'
 
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
-    stage_id = db.Column(db.Integer, db.ForeignKey('stage.id'))
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    stage_id = db.Column(db.Integer, db.ForeignKey('stage.id'), nullable=False)
     order_num = db.Column(db.Integer, nullable=False)
 
     product = db.relationship(Product, backref='products')
     stage = db.relationship(Stage, backref='stages')
 
+    __table_args__ = (
+            CheckConstraint(order_num > 0, name='order_num_con'),
+            UniqueConstraint("product_id", "stage_id"),
+            UniqueConstraint("product_id", "order_num"),
+    )
 
 # class Operation(db.Model):
 #     id = db.Column(db.Integer, primary_key=True)
@@ -112,10 +126,11 @@ class ProductStage(db.Model):
 # execution = db.relationship(Execution, back_populates='technologes')
 
 
-# class Unit(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     product_id = db.Column(db.Integer, db.ForeignKey(Product.id), nullable=False)
-# product = db.relationship("Product", backref='unit')
+class Unit(db.Model):
+    # id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(10), primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey(Product.id), nullable=False)
+    product = db.relationship("Product", backref='unit')
 
 
 # class Event(db.Model):
